@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello World</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <style type="text/css">
+      body {background: #fff;}
+    </style>
+
+  </head>
+  <body>
+    <script type="text/x-handlebars">
+      <div id="wrap">
+        <div class="navbar navbar-default navbar-fixed-top">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="#">Shamisen Web</a>
+            </div>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Another action</a></li>
+                    <li><a href="#">Something else here</a></li>
+                    <li class="divider"></li>
+                    <li class="dropdown-header">Nav header</li>
+                    <li><a href="#">Separated link</a></li>
+                    <li><a href="#">One more separated link</a></li>
+                  </ul>
+                </li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="../navbar/">Default</a></li>
+                <li><a href="../navbar-static-top/">Static top</a></li>
+                <li class="active"><a href="./">Fixed top</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="container">
+          {{outlet}}
+        </div>
+        <div id="push"></div>
+      </div>
+      <div id="footer">
+        <div class="container">
+        	<div class= "navbar navbar-default navbar-fixed-bottom">
+          	<p class="muted credit">This will hold the links for the </p>
+          </div>
+        </div>
+      </div>
+    </script>
+    <script type="text/x-handlebars" id="home">
+      <div class="tabbable" id="myTabs">
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#tab1" data-toggle="tab">Setup / Login</a></li>
+          <li><a href="#tab2" data-toggle="tab">Web</a></li>
+          <li><a href="#tab3" data-toggle="tab">mWeb</a></li>
+          <li><a href="#tab4" data-toggle="tab">mApp</a></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="tab1">
+            <h3>Shamisen Setup</h3>
+            <form class="form-horizontal" role="form">
+              <div class="form-group">
+                <label for="inputEmail1" class="col-lg-2">Awetest server to connect</label>
+                <div class="col-lg-10">
+                  <input type="text" class="form-control" id="inputserver" placeholder="www.awetest.com">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inputPassword1" class="col-lg-2">Shamisen Name</label>
+                <div class="col-lg-10">
+                  <input type="text" class="form-control" id="inputshamisenname" placeholder="ShamisenName">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-offset-2 col-lg-10">
+                  <button type="submit" class="btn btn-success">SAVE</button>
+                </div>
+              </div>
+            </form>
+            <h3>Login to Awetest</h3>
+            <form class="form-horizontal" role="form", id="sign-in-form">
+              <div class="form-group">
+                <label for="inputEmail1" class="col-lg-2">Username</label>
+                <div class="col-lg-10">
+                  <input type="text" class="form-control" id="username" name="user_session[login]" placeholder="Enter your username">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inputPassword1" class="col-lg-2">Password</label>
+                <div class="col-lg-10">
+                  <input type="password" class="form-control" id="password" name="user_session[password]" placeholder="Password">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-lg-offset-2 col-lg-10">
+                  <button type="submit" name="submit" class="btn btn-success">Log In</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="tab-pane" id="tab2">
+            <p>WEB SECTION</p>
+          </div>
+          <div class="tab-pane" id="tab3">
+            <p>mWEB SECTION</p>
+          </div>
+          <div class="tab-pane" id="tab4">
+            <p class='navbar-text'>mAPP SECTION</p>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/handlebars-1.0.0.js"></script>
+    <script type="text/javascript" src="js/ember.min.js"></script>
+    <script type="text/javascript" src="js/ember-data.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+    
+  </body>
+</html>
