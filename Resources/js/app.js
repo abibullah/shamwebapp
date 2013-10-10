@@ -3,9 +3,39 @@ AjaxObj = {
           crossDomain: true,
           contentType: "application/json; charset=UTF-8",
           beforeSend: function( xhr, settings ) {
-            settings.url = App.serverUrl + settings.url + '.json'
+            settings.url = "http://"+ App.serverUrl + settings.url + '.json'
           }
         }
+
+// Create Ember App
+App = Ember.Application.create({})
+
+// App variable setups
+App.serverUrl = null
+App.user = {}
+
+// App Related Directory Setup
+App.appDirectory = Ti.Filesystem.getApplicationDirectory().nativePath().toString()
+App.userDirectory = Ti.Filesystem.getUserDirectory()
+App.unix = Ti.getPlatform() !=  'win32'
+App.shamisenDirectory = (App.unix ? App.userDirectory : "C:/") + "/shamisen"
+App.shamisenTmpDirectory = App.shamisenDirectory+ "/tmp"
+App.shamisenAppsDirectory = App.shamisenTmpDirectory + "/apps"
+
+Ember.Application.initializer({
+  name: "initialShmisenApps",
+
+  initialize: function(container, application) {
+    var shamisen_tmp_dir = Ti.Filesystem.getFile(App.shamisenTmpDirectory);
+    if(!shamisen_tmp_dir.isDirectory())
+      shamisen_tmp_dir.createDirectory()
+    // This Order is Importent: As tmp creation will come before the apps
+    var shamisen_apps_dir = Ti.Filesystem.getFile(App.shamisenAppsDirectory);
+    if(!shamisen_apps_dir.isDirectory())
+      shamisen_apps_dir.createDirectory();
+  }
+});
+
 Ember.Application.initializer({
   name: "initialAjaxSetup",
 
@@ -14,32 +44,43 @@ Ember.Application.initializer({
   }
 });
 
-// This is of no use, Here we need to add one more initializer so that app gets initialized properly. :(
+Ember.Application.initializer({
+  name: "loadUserState",
 
-App = Ember.Application.create({
-  initialize: function(){
-    var readfi = Ti.Filesystem.getFile(Ti.Filesystem.getUserDirectory()+'/shamisen/config/settings.yml');
+  initialize: function(container, application) {
+    var readfi = Ti.Filesystem.getFile(App.appDirectory +'/userinfo.yml');
     if(readfi.exists()){
       var Stream = Ti.Filesystem.getFileStream(readfi);    
       Stream.open(Ti.Filesystem.MODE_READ);
       var contents = Stream.read();
-      App.settingsYML = jsyaml.load(contents.toString())
+      app_json = jsyaml.load(contents.toString())
+      App.serverUrl = app_json.server
+      if(app_json.access_token != null){
+        $.ajax({
+            type: "POST",
+            async: false,
+            dataType: 'json',
+            url: "/login",
+            headers: {'CUSTOMER-LOGIN-KEY': app_json.access_token},
+            data: JSON.stringify({dummy: 'dummy'})
+        }).done(function(data){
+          // This sets the setup for the further Coding
+          Ember.set('App.user', data.user)
+          AjaxObj.headers = {'CUSTOMER-LOGIN-KEY': app_json.access_token}
+          $.ajaxSetup(AjaxObj)
+        })
       }
-
-    var document = Ti.Filesystem.getFile('/Users/rohandaxini/Desktop/shamisenwebapp/userinfo.txt');
-    if(document.exists()){
-      var Stream = Ti.Filesystem.getFileStream(readfi);    
-      Stream.open(Ti.Filesystem.MODE_READ);
-      var contents = Stream.read();
-      }
-    // This is the Initial Ajax Setup for the App.
+      Stream.close()
     }
-    // Initialize the User Record if the access_token is present.
+    else{
+      alert("Looks like this is your first time. :)")
+    }
+  }
 });
 
-// App variable setups
-App.serverUrl = null
-App.user = {}
+
+// Ember Related App Initialization
+App.Store = DS.Store.extend({});
 
 App.ApplicationController = Ember.Controller.extend({
   userNotLogged: function(){
@@ -50,10 +91,10 @@ App.ApplicationController = Ember.Controller.extend({
     $.ajaxSetup(AjaxObj)
   },
   actions: {
-      logout: function(){
-          Ember.set('App.user', {})
-          this.resetAjaxSetup(null)
-      }
+    logout: function(){
+        Ember.set('App.user', {})
+        this.resetAjaxSetup(null)
+    }
   }
 })
 
@@ -69,8 +110,6 @@ App.BaseArrayController = Ember.ArrayController.extend({
     return $.isEmptyObject(App.user)
   }.property('App.user')
 })
-
-App.Store = DS.Store.extend({});
 
 App.MobileAppVersion = DS.Model.extend({
   version: DS.attr('string'),
@@ -156,7 +195,7 @@ App.MobileAppVersionsNewController = App.BaseObjectController.extend({
            title: "Select files to open...",  
            types: ['zip'],  
            typesDescription: "Documents",  
-           path: Ti.Filesystem.getUserDirectory()  
+           path: App.userDirectory  
         };
         Ti.UI.openFileChooserDialog(callbackFunc, options);
       },
@@ -166,14 +205,12 @@ App.MobileAppVersionsNewController = App.BaseObjectController.extend({
           model.set('project_id', this.selectedProject.id)
           model.save().then(function(app){
             if (app.id != null){
-              var shamisen_tmp_dir = Ti.Filesystem.getFile(Ti.Filesystem.getUserDirectory()+"/shamisen/tmp/");
-              if(!shamisen_tmp_dir.isDirectory())
-                shamisen_tmp_dir.createDirectory()
-              app_version_folder = Ti.Filesystem.getFile(Ti.Filesystem.getUserDirectory()+"/shamisen/tmp/"+app.id);
+              app_version_folder = Ti.Filesystem.getFile(App.shamisenAppsDirectory+"/"+app.id);
               app_version_folder.createDirectory();
               app_file = Ti.Filesystem.getFile(self.get('selectedFile'))
               self.set('fileStatus', "File Is Getting Copied to the shamisen tmp folder")
-              app_file.copy(app_version_folder)
+              // Unzip the ZIP file to the Destination
+              app_file.unzip(app_version_folder)
               self.set("selectedFile", null)
               self.set("fileStatus", "File Copied Completely. :)")
               self.transitionToRoute("mobile_app_versions")
@@ -190,6 +227,12 @@ App.MobileAppVersionsNewController = App.BaseObjectController.extend({
     }
 })
 
+App.HomeRoute = Ember.Route.extend({
+  setupController: function(controller){
+    controller.set('content', App.user)
+  }
+})
+
 App.HomeController =  App.BaseObjectController.extend({
     resetAjaxSetup: function(access_token){
       AjaxObj.headers = {'CUSTOMER-LOGIN-KEY': access_token}
@@ -198,8 +241,8 @@ App.HomeController =  App.BaseObjectController.extend({
     actions: {
       submit: function() {
           var controller = this
-          App.serverUrl = "http://"+$("#inputserver").val()
-          if(App.serverUrl == "http://")
+          App.set('serverUrl', $("#inputserver").val())
+          if(App.serverUrl == "")
               alert("Please enter the server from which to authenticate.")
           $.ajax({
               type: "POST",
@@ -213,34 +256,48 @@ App.HomeController =  App.BaseObjectController.extend({
               Ember.set('App.user', data.user)
               controller.resetAjaxSetup(data.user.single_access_token)
               controller.transitionToRoute('home')
-
-              var document = Ti.Filesystem.getFile('/Users/rohandaxini/Desktop/shamisenwebapp/userinfo.txt');
-              document.open(Ti.Filesystem.MODE_WRITE);
-              document.write(data.user.single_access_token);
-              document.close();
+              var doc = Ti.Filesystem.getFile(App.appDirectory +'/userinfo.yml');
+              doc.open(Ti.Filesystem.MODE_WRITE);
+              // This Will Write Settings YML
+              doc.write(jsyaml.dump({
+                server: App.serverUrl,
+                access_token: data.user.single_access_token
+              }));
           })
       },
       saveShamisen: function(){
-        var readfi = Ti.Filesystem.getFile(Ti.Filesystem.getUserDirectory()+'/shamisen/config/settings.yml');
-        if (readfi.exists())
+        var readfi = Ti.Filesystem.getFile(App.shamisenDirectory+'/config/settings.yml');
+        shamisen_name = $('#inputshamisenname').val().replace(/\s+/g, '')
+        if (readfi.exists() && ($('#inputshamisenname').val().replace(/\s+/g, '') != "") && shamisen_name.length > 8)
         {  
-           var Stream = Ti.Filesystem.getFileStream(readfi);    
-           Stream.open(Ti.Filesystem.MODE_READ);  
-           var contents = Stream.read();  
-           settings_json = jsyaml.load(contents.toString())
-           settings_json.awetest_server.hostname = App.serverUrl
-           settings_json.shamisen_name = $('#inputshamisenname').val()
-           // alert(settings_json.awetest_server.hostname)
-           Stream.close();    
+          var Stream = Ti.Filesystem.getFileStream(readfi);    
+          Stream.open(Ti.Filesystem.MODE_READ);  
+          var contents = Stream.read();
+          App.serverUrl = $("#inputserver").val()
+          settings_json = jsyaml.load(contents.toString())
+          settings_json.awetest_server.hostname = App.serverUrl
+          settings_json.shamisen_name = $('#inputshamisenname').val()
+          Stream.close();    
+          var document1 = Ti.Filesystem.getFile(App.shamisenDirectory+'/config/settings_generated.yml');
+          document1.open(Ti.Filesystem.MODE_WRITE);
+          document1.write(jsyaml.dump(settings_json));
+          document1.close();
         }
-        var document1 = Ti.Filesystem.getFile('/Users/rohandaxini/Desktop/shamisenwebapp/settings.yml');
-        document1.open(Ti.Filesystem.MODE_WRITE);
-        document1.write(jsyaml.dump(settings_json));
-        document1.close();
+        else{
+          alert("Either your settings yaml is missing at "+ App.shamisenDirectory
+            +'/config/settings.yml'+ " OR Enter the Shmisen Name Properly, with minimu 8 charectors")
+        }
       },
       logout: function(){
           Ember.set('App.user', {})
           this.resetAjaxSetup(null)
+          var doc = Ti.Filesystem.getFile(App.appDirectory +'/userinfo.yml');
+          doc.open(Ti.Filesystem.MODE_WRITE);
+          // This Will Write Settings YML
+          doc.write(jsyaml.dump({
+            server: App.serverUrl,
+            access_token: null
+          }));
       }
     }
 });

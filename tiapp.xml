@@ -23,6 +23,7 @@
 <resizable>true</resizable>
 <chrome scrollbars="true">true</chrome>
 <maximizable>true</maximizable>
+<maximized>true</maximized>
 <minimizable>true</minimizable>
 <closeable>true</closeable>
 </window>
