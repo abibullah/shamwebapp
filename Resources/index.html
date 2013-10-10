@@ -4,13 +4,17 @@
     <title>Hello World</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+
+      <link href="css/style.css" rel="stylesheet" media="screen">
+      <!-- <link href="css/bootstrap-select.css" rel="stylesheet" media="screen"> -->
+
     <style type="text/css">
       body {background: #fff;}
     </style>
 
   </head>
   <body>
-    <script type="text/x-handlebars">
+    <script type="text/x-handlebars" data-template-name='application'>
       <div id="wrap">
         <div class="navbar navbar-default navbar-fixed-top">
           <div class="container">
@@ -25,25 +29,23 @@
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
                 <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Mobile Apps <b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#">Action</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li class="divider"></li>
-                    <li class="dropdown-header">Nav header</li>
-                    <li><a href="#">Separated link</a></li>
-                    <li><a href="#">One more separated link</a></li>
+                    <li><a href="#/mobile_app_versions">Mobile App Versions</a></li>
+                    <li><a href="#/mobile_app_versions/new">New App Version</a></li>
                   </ul>
                 </li>
               </ul>
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="../navbar/">Default</a></li>
-                <li><a href="../navbar-static-top/">Static top</a></li>
-                <li class="active"><a href="./">Fixed top</a></li>
+                <li class="active">
+                  {{#if userNotLogged}}
+                    <a href="">Login Below</a>
+                  {{else}}
+                    <a href="#" {{action 'logout'}}>{{App.user.login}} (Log Out)</a></li>
+                  {{/if}}
+                </li>
+
               </ul>
             </div>
           </div>
@@ -53,30 +55,22 @@
         </div>
         <div id="push"></div>
       </div>
-      <div id="footer">
-        <div class="container">
-        	<div class= "navbar navbar-default navbar-fixed-bottom">
-          	<p class="muted credit">This will hold the links for the </p>
-          </div>
-        </div>
-      </div>
     </script>
-    <script type="text/x-handlebars" id="home">
+    <script type="text/x-handlebars" id="home" data-template-name='home'>
       <div class="tabbable" id="myTabs">
-        <ul class="nav nav-tabs">
-          <li class="active"><a href="#tab1" data-toggle="tab">Setup / Login</a></li>
-          <li><a href="#tab2" data-toggle="tab">Web</a></li>
-          <li><a href="#tab3" data-toggle="tab">mWeb</a></li>
-          <li><a href="#tab4" data-toggle="tab">mApp</a></li>
-        </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="tab1">
             <h3>Shamisen Setup</h3>
-            <form class="form-horizontal" role="form">
+            <hr></hr>
+            <form class="form-horizontal" role="form" {{action saveShamisen on='submit'}}>
               <div class="form-group">
                 <label for="inputEmail1" class="col-lg-2">Awetest server to connect</label>
                 <div class="col-lg-10">
-                  <input type="text" class="form-control" id="inputserver" placeholder="www.awetest.com">
+                  <div class="input-group">
+                    <span class="input-group-addon">http:// </span>
+                    <input type="text" class="form-control" id="inputserver" placeholder="awetest.com", value='habib13688.pagekite.me'>
+                  </div>
+                  
                 </div>
               </div>
               <div class="form-group">
@@ -91,26 +85,64 @@
                 </div>
               </div>
             </form>
-            <h3>Login to Awetest</h3>
-            <form class="form-horizontal" role="form", id="sign-in-form">
-              <div class="form-group">
-                <label for="inputEmail1" class="col-lg-2">Username</label>
-                <div class="col-lg-10">
-                  <input type="text" class="form-control" id="username" name="user_session[login]" placeholder="Enter your username">
+            <hr></hr>
+            {{#if userNotLogged }}
+              <h3>Login to Awetest</h3>
+              <hr></hr>
+              <form class="form-horizontal" role="form", id="sign-in-form" {{action submit on='submit'}}>
+                <div class="form-group">
+                  <label for="inputEmail1" class="col-lg-2">Username</label>
+                  <div class="col-lg-10">
+                    <input type="text" class="form-control" id="username" name="user_session[login]" placeholder="Enter your username", value='admin'>
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="inputPassword1" class="col-lg-2">Password</label>
-                <div class="col-lg-10">
-                  <input type="password" class="form-control" id="password" name="user_session[password]" placeholder="Password">
+                <div class="form-group">
+                  <label for="inputPassword1" class="col-lg-2">Password</label>
+                  <div class="col-lg-10">
+                    <input type="password" class="form-control" id="password" name="user_session[password]" placeholder="Password" value='password'>
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <div class="col-lg-offset-2 col-lg-10">
-                  <button type="submit" name="submit" class="btn btn-success">Log In</button>
+                <div class="form-group">
+                  <div class="col-lg-offset-2 col-lg-10">
+                    <button type='submit' class="btn btn-success">Log In</button>
+                  </div>
                 </div>
+              </form>
+            {{else}}
+              <div>
+                <p>
+                  You are Logged in as {{first_name}} {{middle_name}} {{last_name}}
+                </p>
+                <div>
+                  <h3 class='pull-left'>User Infos</h3>
+                </div>                
+                <table class='table table-bordered table-hover'>
+                  <tr>
+                    <td>Email</td>
+                    <td>{{email}}</td>
+                  </tr>
+                  <tr>
+                    <td>Login</td>
+                    <td>{{login}}</td>
+                  </tr>
+                  <tr>
+                    <td>Role</td>
+                    <td>{{role}}</td>
+                  </tr>
+                  <tr>
+                    <td>Company</td>
+                    <td>{{company.name}}</td>
+                  </tr>
+                  <tr>
+                    <td>Projects</td>
+                    <td>{{projects_list}}</td>
+                  </tr>
+                </table>
+                  <span class='pull-right'>
+                    <button {{action 'logout'}} class="btn btn-warning">Logout</button>
+                  </span>
               </div>
-            </form>
+            {{/if}}
           </div>
           <div class="tab-pane" id="tab2">
             <p>WEB SECTION</p>
@@ -119,19 +151,140 @@
             <p>mWEB SECTION</p>
           </div>
           <div class="tab-pane" id="tab4">
-            <p class='navbar-text'>mAPP SECTION</p>
           </div>
         </div>
       </div>
     </script>
+    <script type="text/x-handlebars" data-template-name='mobile_app_versions/new'>
+    {{#if userNotLogged }}
+        <h2> You Need to Login First</h2>
+        <a href=""> Click Here to Login<a>
+    {{else}}
+      <form class="form-horizontal" role="form", id="mapp-upload-form" {{action submit on="savemAppUpload"}}>
+        <div>
+          <h3>Create a Mobile App Version</h3>
+          <hr></hr>
+          <div class='form-group'>
+            <label class='col-lg-3'>Select a Company</label>
+            <div class= 'col-lg-3'>
+              {{view Ember.Select
+                  contentBinding="user_companies" 
+                  optionValuePath="content.id"
+                  optionLabelPath="content.name"
+                  selectionBinding="selectedCompany"
+                  class='form-control input-sm'
+                  name='mobile_app_version[name]'
+              }}
+            </div>
+        </div>
+        <div class='form-group'>
+            <label class='col-lg-3'>Select a Project</label>
+            <div class= 'col-lg-3'>
+              {{view Ember.Select
+                  contentBinding="companyProjects"
+                  selectionBinding="selectedProject"
+                  optionValuePath="content.id"
+                  optionLabelPath="content.name"
+                  prompt="Select a project"
+                  class='form-control input-sm'
+              }}
+            </div>
+
+        </div>
+        <div class='form-group' id='mobile_app_version_form'>
+          <label class='col-lg-3'> Version </label>
+          <div class='col-lg-3'>
+            {{ input valueBinding='version' type='text' class='form-control input-sm'}}
+          </div>
+        </div>
+        <div class='form-group'>
+          <label class='col-lg-3'> Category </label>
+          <div class='col-lg-3'>
+              {{view Ember.Select
+                  contentBinding="mobileCategories" 
+                  optionValuePath="content.name"
+                  optionLabelPath="content.value"
+                  valueBinding="category"
+                  class='form-control input-sm'
+                  name='mobile_app_version[name]'
+              }}
+          </div>
+        </div>
+        <div class='form-group'>
+          <label class='col-lg-3'> AppLocation </label>
+          <div class='col-lg-3'>
+            <button {{action 'openFileSelection'}} class="btn btn-warning">Select File</button>
+          </div>
+          <label>
+            {{selectedFile}}
+          </label>
+        </div>
+        <div class='form-group'>
+          <label class='col-lg-3'> Description </label>
+          <div class='col-lg-3'>
+            {{ textarea valueBinding='description' class='form-control input-sm'}}
+          </div>
+        </div>
+        <button type='submit' {{action 'SavemAppUpload' model}} class='btn btn-success'> Save </button>
+        <label>{{fileStatus}}</label>
+      </form>
+    {{/if}}
+    </script>
+    <script type="text/x-handlebars" data-template-name="mobile_app_versions/index">
+    {{#if userNotLogged }}
+      <h2> You Need to Login First</h2>
+      <a href=""> Click Here to Login<a>
+    {{else}}
+      {{#if model}}
+        <h4> List of all the versions that are uploaded from local</h4>
+        <hr></hr>
+        <table class='table table-bordered table-hover'>
+          <thead>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Path</th>
+            <th>Actions</th>
+          </thead>
+            <tbody>
+            {{#each app in model}}
+              {{#unless app.isNew}}
+                <tr>
+                  <td>{{app.id}}</td>
+                  <td>{{app.version}}</td>
+                  <td>{{app.category}}</td>
+                  <td>{{app.description}}</td>
+                  <td>~/shamisen/tmp/{{app.id}}/</td>
+                  <td>
+                    <a type="button" class="btn btn-default btn-lg" {{action 'deleteVersion' app}}>
+                      <span class='glyphicon glyphicon-remove-circle'></span> Delete
+                    </a>
+                  </td>
+                </tr>
+                {{/unless}}
+              {{/each}}
+            </tbody>
+          </table>
+      {{else}}
+        <h2> You have not created any App Versions Yet</h2>
+        <a href="#/mobile_app_versions/new">Click here to create one</a>
+      {{/if}}
+    {{/if}}
+    </script>
+    <script type="text/x-handlebars" data-template-name="mobile_app_versions">
+      {{outlet}}
+    </script>
 
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/handlebars-1.0.0.js"></script>
-    <script type="text/javascript" src="js/ember.min.js"></script>
+    <script type="text/javascript" src="js/ember.js"></script>
     <script type="text/javascript" src="js/ember-data.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="js/underscore.min.js"></script>
+    <script type="text/javascript" src="js/serializeObj.js"></script>
+    <script type="text/javascript" src="js/js-yaml.js"></script>
+    <!-- // <script type="text/javascript" src="js/bootstrap-select.min.js"></script> -->
     <script type="text/javascript" src="js/app.js"></script>
-    
   </body>
 </html>
